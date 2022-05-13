@@ -1,6 +1,7 @@
 # dependencies and set up
 import numpy as np
 import sqlalchemy
+import datetime as dt
 from sqlalchemy.ext.automap import automap_base
 from sqlalchemy.orm import Session
 from sqlalchemy import create_engine, func
@@ -19,7 +20,7 @@ Base.prepare(engine, reflect=True)
 
 # Save reference to the table
 measurement = Base.classes.measurement
-stations = Base.classes.stations
+station = Base.classes.station
 
 # Flask Setup
 app = Flask(__name__)
@@ -61,11 +62,11 @@ def prcp():
 
 @app.route("/api/v1.0/stations")
 def allstation():
-  # Create our session (link) from Python to the DB
+   # Create our session (link) from Python to the DB
     session = Session(engine)
 
     # Query for date and pcrp data
-    results_2 = session.query(stations.station).all()
+    results_2 = session.query(station.station).all()
 
     session.close()
 
@@ -97,26 +98,44 @@ def temp():
 
     return jsonify(USC00519281_list)
 
+
 @app.route("/api/v1.0/<start>")
-def startend():
+@app.route("/api/v1.0/<start>/<end")
+def startend(start, end):
+
     # Create our session (link) from Python to the DB
     session = Session(engine)
 
     # Query for date and tobs data
-    tobs_lowest = session.query(func.min(measurement.tobs)).\
-    filter(measurement.date == '').one()
+    results_4 = session.query(measurement.date, measurement.tobs).filter((func.strftime(measurement.date) >= start) and \
+         (func.strftime(measurement.date) <= end)).order_by(measurement.date).all()
 
-    tobs_highest = session.query(func.max(measurement.tobs)).\
-    filter(measurement.date == '').one()
+    session.close()
 
-    tobs_avg = session.query(func.avg(measurement.tobs)).\
-    filter(measurement.date == '').one()
+    tobs_agg = []
+    tobs_agg_start =[]
 
+    #loop through data to find tmin, tmax, tavg and add to list for start and end dates
+    for date, time in results_4:
 
-@app.route("/api/v1.0/<start>/<end")
-def funtion():
+        if end == "":
+            end == dt.date.today()
+            temp_min_start = results_4.tobs.min()
+            temp_max_start = results_4.tobs.avg()
+            temp_avg_start = results_4.tobs.max() 
 
+            tobs_agg_start.append(temp_min_start, temp_max_start, temp_avg_start)
 
+            return jsonify(tobs_agg_start)
+
+        else:    
+            temp_min = results_4.tobs.min()
+            temp_max = results_4.tobs.avg()
+            temp_avg = results_4.tobs.max()    
+        
+            tobs_agg.append(temp_min, temp_max, temp_avg)
+
+            return jsonify(tobs_agg)
 
 
 if __name__ == "__main__":
