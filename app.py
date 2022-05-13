@@ -35,7 +35,7 @@ def welcome():
         f"/api/v1.0/stations<br/>"
         f"/api/v1.0/tobs<br/>"
         f"/api/v1.0/<start></br>"
-        f"/api/v1.0/<start>/<end"
+        f"/api/v1.0/<start>/<end>"
     )
 
 
@@ -100,8 +100,11 @@ def temp():
 
 
 @app.route("/api/v1.0/<start>")
-@app.route("/api/v1.0/<start>/<end")
+@app.route("/api/v1.0/<start>/<end>")
 def startend(start, end):
+    
+    if end == "":
+        end == '2017-08-23'
 
     # Create our session (link) from Python to the DB
     session = Session(engine)
@@ -113,29 +116,17 @@ def startend(start, end):
     session.close()
 
     tobs_agg = []
-    tobs_agg_start =[]
-
+    
     #loop through data to find tmin, tmax, tavg and add to list for start and end dates
     for date, time in results_4:
 
-        if end == "":
-            end == dt.date.today()
-            temp_min_start = results_4.tobs.min()
-            temp_max_start = results_4.tobs.avg()
-            temp_avg_start = results_4.tobs.max() 
-
-            tobs_agg_start.append(temp_min_start, temp_max_start, temp_avg_start)
-
-            return jsonify(tobs_agg_start)
-
-        else:    
-            temp_min = results_4.tobs.min()
-            temp_max = results_4.tobs.avg()
-            temp_avg = results_4.tobs.max()    
+        temp_min = results_4.tobs.min()
+        temp_max = results_4.tobs.avg()
+        temp_avg = results_4.tobs.max()    
         
-            tobs_agg.append(temp_min, temp_max, temp_avg)
+        tobs_agg.append(temp_min, temp_max, temp_avg)
 
-            return jsonify(tobs_agg)
+    return jsonify(tobs_agg)
 
 
 if __name__ == "__main__":
