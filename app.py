@@ -103,6 +103,7 @@ def temp():
 @app.route("/api/v1.0/<start>/<end>")
 def startend(start, end):
     
+    #if no end date is entered, use last date in data set
     if end == "":
         end == '2017-08-23'
 
@@ -117,7 +118,7 @@ def startend(start, end):
 
     tobs_agg = []
     
-    #loop through data to find tmin, tmax, tavg and add to list for start and end dates
+    #loop through data to calculate tmin, tmax, tavg and add to list
     for date, time in results_4:
 
         temp_min = results_4.tobs.min()
