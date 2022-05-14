@@ -101,31 +101,30 @@ def temp():
 
 @app.route("/api/v1.0/<start>")
 @app.route("/api/v1.0/<start>/<end>")
-def startend(start, end):
-    
-    #if no end date is entered, use last date in data set
-    if end == "":
-        end == '2017-08-23'
+
+def startend(start= None, end= '2017-08-23'):
 
     # Create our session (link) from Python to the DB
     session = Session(engine)
 
     # Query for date and tobs data
-    results_4 = session.query(measurement.date, measurement.tobs).filter((func.strftime(measurement.date) >= start) and \
-         (func.strftime(measurement.date) <= end)).order_by(measurement.date).all()
+    results_4 = session.query(measurement.date, measurement.tobs).filter((func.strftime(measurement.date) >= start),\
+    (func.strftime(measurement.date) <= end)).order_by(measurement.date).all()
 
     session.close()
 
     tobs_agg = []
-    
-    #loop through data to calculate tmin, tmax, tavg and add to list
-    for date, time in results_4:
+    tobs1 = []
 
-        temp_min = results_4.tobs.min()
-        temp_max = results_4.tobs.avg()
-        temp_avg = results_4.tobs.max()    
-        
-        tobs_agg.append(temp_min, temp_max, temp_avg)
+    #loop through data to calculate tmin, tmax, tavg and add to list
+    for date, tobs in results_4:
+        tobs1.append(tobs)
+
+    temp_min = min(tobs1)
+    temp_max = sum(tobs1)/len(tobs1)
+    temp_avg = max(tobs1) 
+
+    tobs_agg = [temp_min, temp_max, temp_avg]
 
     return jsonify(tobs_agg)
 
