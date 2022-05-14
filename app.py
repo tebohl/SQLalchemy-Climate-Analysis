@@ -102,27 +102,30 @@ def temp():
 @app.route("/api/v1.0/<start>")
 @app.route("/api/v1.0/<start>/<end>")
 
+# Define function, set default value for end in case user does not input an end date
 def startend(start= None, end= '2017-08-23'):
 
     # Create our session (link) from Python to the DB
     session = Session(engine)
 
-    # Query for date and tobs data
+    # Query for date and tobs data based on input
     results_4 = session.query(measurement.date, measurement.tobs).filter((func.strftime(measurement.date) >= start),\
     (func.strftime(measurement.date) <= end)).order_by(measurement.date).all()
 
     session.close()
 
+    # list for tobs data based on input
+    tobs_input = []
+    # list for aggregate values that we will calculate later
     tobs_agg = []
-    tobs1 = []
 
-    #loop through data to calculate tmin, tmax, tavg and add to list
+    #loop through data based on input date(s)
     for date, tobs in results_4:
-        tobs1.append(tobs)
+        tobs_input.append(tobs)
 
-    temp_min = min(tobs1)
-    temp_max = sum(tobs1)/len(tobs1)
-    temp_avg = max(tobs1) 
+    temp_min = min(tobs_input)
+    temp_max = sum(tobs_input)/len(tobs_input)
+    temp_avg = max(tobs_input) 
 
     tobs_agg = [temp_min, temp_max, temp_avg]
 
